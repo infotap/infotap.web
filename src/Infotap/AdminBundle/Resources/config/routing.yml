@@ -45,3 +45,8 @@ api_register2:
     path:     /api/register2
     defaults: { _controller: "InfotapAdminBundle:User:apiRegister2", _format: ~ }
     methods: ['GET','POST','PUT','OPTIONS']
+
+api_logout:
+    path:     /api/logout
+    defaults: { _controller: "InfotapAdminBundle:User:logout", _format: ~ }
+    methods: ['GET','POST','PUT','OPTIONS']

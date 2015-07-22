@@ -32,6 +32,7 @@ class UserController extends FOSRestController
     public function apiRegister1Action(Request $request)
     {
         $em = $this->getDoctrine()->getManager();
+
         if($this->get('request')->getMethod()=='OPTIONS'){
             $returnResponse=new Response(json_encode(array('accept'=>true)));
             $returnResponse->headers->set('Content-Type', 'application/json');
@@ -42,99 +43,36 @@ class UserController extends FOSRestController
         }
         $return=new \stdClass;
         $userEntity=new User();
-        $userEntity->setAadharId($request->query->get('uid'));
-        $userEntity->setAccessToken($userEntity->getAadharId().'-'.bin2hex(openssl_random_pseudo_bytes(16)));
-        $userEntity->setOtpCode(rand(10000,99999));
-        $userEntity->setName($request->query->get('name'));
-        $userEntity->setEmail($request->query->get('email'));
         $userEntity->setMobile($request->query->get('mobile'));
-        $userEntity->setLocation($request->query->get('location'));
-        $userEntity->setArea($request->query->get('area'));
-        $userEntity->setCity($request->query->get('city'));
-        $userEntity->setState($request->query->get('state'));
-        $userEntity->setAndroidRegId($request->query->get('androidRegId'));
-        $userEntity->setStatus(0);
-        if(is_array($request->query->get('gender'))){
-            $gender=$request->query->get('gender');
-            $userEntity->setGender($gender[1]);
-        }
-        $day=null;$month=null;$year=null;
-        if(is_array($request->query->get('day'))){
-            $dayarr=$request->query->get('day');
-            $day=($dayarr[1]);
-        }
-        if(is_array($request->query->get('month'))){
-            $montharr=$request->query->get('month');
-            $month=($montharr[1]);
-        }
-        if(is_array($request->query->get('year'))){
-            $yeararr=$request->query->get('year');
-            $year=($yeararr[1]);
-        }
-        if($day&&$month&&$year){
-            $dob = \DateTime::createFromFormat('d-m-Y',$day.'-'.$month.'-'.$year);
-            $userEntity->setDob($dob);
-        }
-        $existingUserEntity=$em->getRepository('InfotapAdminBundle:User')->findOneBy(array('aadharId'=>$request->query->get('uid')));
-        if($existingUserEntity){
-            $userEntity=$existingUserEntity;
+        $existingEntity = $em->getRepository('InfotapAdminBundle:User')->findOneBy(array('mobile'=>$userEntity->getMobile()));
+        if(!$existingEntity){
             $userEntity->setOtpCode(rand(10000,99999));
             $userEntity->setStatus(0);
-        }else{
             $em->persist($userEntity);
+        }else{
+            $existingEntity->setOtpCode(rand(10000,99999));
+            $existingEntity->setStatus(0);
         }
 
-        // $smsData=array();
-        // $smsData['to']=$userEntity->getMobile();
-        // $smsData['message']='Welcome to InfoTap! Your mobile verification code is '.$userEntity->setOtpCode().';
-        // $this->get('infotap.helper.common')->sendSms($smsData);
+        if($this->container->getParameter('sms_flag')){
+            $smsData=array();
+            $smsData['to']=$userEntity->getMobile();
+            $smsData['message']='Welcome to InfoTap! Your mobile verification code is '.$userEntity->setOtpCode();
+            $buzz = $this->container->get('buzz');
+            $smsCallUrl='http://api.mvaayoo.com/mvaayooapi/MessageCompose?user='.$this->container->getParameter('sms_username').':'.$this->container->getParameter('sms_password').'&senderID=DOPART&receipientno='.$smsData['to'].'&msgtxt='.urlencode($smsData['message']).'&state=4';
+            $response =null;
+            $response = $buzz->get($smsCallUrl);
+        }
 
         $em->flush();
+
         $return->success=true;
+        $return->mobileNumber=$userEntity->getMobile();
+        $return->aadharNumber=$userEntity->getAadharId();
         $return->message="OTP is sent to your mobile no."; 
 
-        // if($userEntity->getAadharId()&&$userEntity->getName()){
-        //         $auth_string ='{"aadhaar-id":"'.$userEntity->getAadharId().'","location":{"type":"pincode","pincode":"560067"},"modality":"demo","certificate-type":"preprod","demographics":{"name":{"matching-strategy":"exact","name-value":"'.$userEntity->getName().'"}';
-        //         $auth_string .='}}';
-        //         $ch = curl_init('https://ac.khoslalabs.com/hackgate/hackathon/auth/raw');                                                                      
-        //         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                                                     
-        //         curl_setopt($ch, CURLOPT_POSTFIELDS, $auth_string);                                                                  
-        //         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);                                                                      
-        //         curl_setopt($ch, CURLOPT_HTTPHEADER, array(                                                                          
-        //             'Content-Type: application/json',                                                                                
-        //             'Content-Length: ' . strlen($auth_string))                                                                       
-        //         );                                                                                                                                                                                                                       
-        //         $auth_result = curl_exec($ch);
-        //         $auth_resultobj=json_decode($auth_result);
-        //         if($auth_resultobj->success){
-        //             $data_string ='{"aadhaar-id":"'.$userEntity->getAadharId().'","location":{"type":"pincode","pincode":"123456"},"channel":"SMS"}';
-        //             $ch = curl_init('https://ac.khoslalabs.com/hackgate/hackathon/otp');                                                                      
-        //             curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                                                     
-        //             curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);                                                                  
-        //             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);                                                                      
-        //             curl_setopt($ch, CURLOPT_HTTPHEADER, array(                                                                          
-        //                 'Content-Type: application/json',                                                                                
-        //                 'Content-Length: ' . strlen($data_string))                                                                       
-        //             );                                                                                                                                                                                                                       
-        //             $result = curl_exec($ch);
-        //             $resultobj=json_decode($result);
-        //             if($resultobj->success){
-        //                 $return['success']=true;
-        //                 $return['message']="OTP is sent to your mobile registered with your aadhaar no.";
-        //             }else{
-        //                  $return['success']=false;
-        //                  $return['message']="Invalid aadhaar no. or it is not associated with a mobile number for OTP.";
-        //             }
-        //         }else{
-        //             $return['success']=false;
-        //             $return['message']="Your name is not matching with Aadhaar ID";
-        //         }
-        // }else{
-        //     $return['success']=false;
-        //     $return['message']="Please provide Aadhaar id and Full Name as in Aadhaar Card";
-        // }
-
         $returnResponse=new Response(json_encode($return));
+
         $returnResponse->headers->set('Content-Type', 'application/json');
         $returnResponse->headers->set('Access-Control-Allow-Origin', '*');
         $returnResponse->headers->set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -145,6 +83,7 @@ class UserController extends FOSRestController
     public function apiRegister2Action(Request $request)
     {
         $em = $this->getDoctrine()->getManager();
+
         if($this->get('request')->getMethod()=='OPTIONS'){
             $returnResponse=new Response(json_encode(array('accept'=>true)));
             $returnResponse->headers->set('Content-Type', 'application/json');
@@ -154,12 +93,45 @@ class UserController extends FOSRestController
             return $returnResponse;
         }
         $return=new \stdClass;
-        $userEntity=new User();
-        $userEntity=$em->getRepository('InfotapAdminBundle:User')->findOneBy(array('aadharId'=>$request->query->get('uid')));
+        $userEntity=null;
+        $userEntity = $em->getRepository('InfotapAdminBundle:User')->findOneBy(array('mobile'=>$request->get('mobile')));
         if($request->get('code') && $userEntity){
-            if($request->get('code')==$userEntity->getOtpCode()){
+            if($request->get('code') == $userEntity->getOtpCode()){
+                $userEntity->setAadharId($request->query->get('uid'));
+                $userEntity->setName($request->query->get('name'));
+                $userEntity->setEmail($request->query->get('email'));
+                $userEntity->setMobile($request->query->get('mobile'));
+                $userEntity->setLocation($request->query->get('location'));
+                $userEntity->setArea($request->query->get('area'));
+                $userEntity->setCity($request->query->get('city'));
+                $userEntity->setState($request->query->get('state'));
+                $userEntity->setAndroidRegId($request->query->get('androidRegId'));
+                if(is_array($request->query->get('gender'))){
+                    $gender=$request->query->get('gender');
+                    $userEntity->setGender($gender[1]);
+                }
+                $day=null;$month=null;$year=null;
+                if(is_array($request->query->get('day'))){
+                    $dayarr=$request->query->get('day');
+                    $day=($dayarr[1]);
+                }
+                if(is_array($request->query->get('month'))){
+                    $montharr=$request->query->get('month');
+                    $month=($montharr[1]);
+                }
+                if(is_array($request->query->get('year'))){
+                    $yeararr=$request->query->get('year');
+                    $year=($yeararr[1]);
+                }
+                if($day&&$month&&$year){
+                    $dob = \DateTime::createFromFormat('d-m-Y',$day.'-'.$month.'-'.$year);
+                    $userEntity->setDob($dob);
+                }
+                $userEntity->setAccessToken($userEntity->getAadharId().'-'.bin2hex(openssl_random_pseudo_bytes(16)));
                 $userEntity->setStatus(1);
                 $userEntity->setOtpCode(null);
+                $em->persist($userEntity);
+                $em->flush();
                 $departments = $em->getRepository('InfotapAdminBundle:Department')->findAll();
                 foreach ($departments as $department) {
                     $userPreference=new UserPreference();
@@ -181,84 +153,7 @@ class UserController extends FOSRestController
             $return->success=false;
             $return->message="Invalid verification code.";
         }
-        $em->flush();
-        // $userEntity->setAadharId($request->query->get('uid'));
-        // $userEntity->setOtpCode($request->query->get('code'));
-        // if($userEntity->getAadharId()){
-        //     $data_string ='{"aadhaar-id":"'.$userEntity->getAadharId().'","location": {"type": "pincode","pincode": "201304"},"modality": "otp","otp": "'.$userEntity->getOtpCode().'","device-id": "public","certificate-type": "preprod"}';
-        //     $ch = curl_init('https://ac.khoslalabs.com/hackgate/hackathon/auth/raw');                                                                      
-        //     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                                                     
-        //     curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);                                                                  
-        //     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);                                                                      
-        //     curl_setopt($ch, CURLOPT_HTTPHEADER, array(                                                                          
-        //         'Content-Type: application/json',                                                                                
-        //         'Content-Length: ' . strlen($data_string))                                                                       
-        //     );                                                                                                                                                                                                                       
-        //     $result = curl_exec($ch);
-        //     $resultobj=json_decode($result);
-        //     if($resultobj->success){
-        //         $return['success']=true;
-        //         $return['message']="Account created successfully.";
-        //         $existingUserEntity = $em->getRepository('InfotapAdminBundle:User')->findOneBy(array('aadharId'=>$userEntity->getAadharId()));
-        //         if($existingUserEntity){
-        //             $userEntity=$existingUserEntity;
-        //             $token=$existingUserEntity->getAccessToken();
-        //         }else{
-        //             $userEntity->setAccessToken($userEntity->getAadharId().'-'.bin2hex(openssl_random_pseudo_bytes(16)));
-        //             $token=$userEntity->getAccessToken();
-        //         }
-        //         $userEntity->setName($request->query->get('name'));
-        //         $userEntity->setEmail($request->query->get('email'));
-        //         $userEntity->setMobile($request->query->get('mobile'));
-        //         $userEntity->setLocation($request->query->get('location'));
-        //         $userEntity->setArea($request->query->get('area'));
-        //         $userEntity->setCity($request->query->get('city'));
-        //         $userEntity->setState($request->query->get('state'));
-        //         $userEntity->setAndroidRegId($request->query->get('androidRegId'));
-        //         if(is_array($request->query->get('gender'))){
-        //             $gender=$request->query->get('gender');
-        //             $userEntity->setGender($gender[1]);
-        //         }
-        //         $day=null;$month=null;$year=null;
-        //         if(is_array($request->query->get('day'))){
-        //             $dayarr=$request->query->get('day');
-        //             $day=($dayarr[1]);
-        //         }
-        //         if(is_array($request->query->get('month'))){
-        //             $montharr=$request->query->get('month');
-        //             $month=($montharr[1]);
-        //         }
-        //         if(is_array($request->query->get('year'))){
-        //             $yeararr=$request->query->get('year');
-        //             $year=($yeararr[1]);
-        //         }
-        //         if($day&&$month&&$year){
-        //             $dob = \DateTime::createFromFormat('d-m-Y',$day.'-'.$month.'-'.$year);
-        //             $userEntity->setDob($dob);
-        //         }
-
-        //         if(!$existingUserEntity){
-        //             $userEntity->setStatus(1);
-        //             $em->persist($userEntity);
-        //             $em->flush();
-        //             $departments = $em->getRepository('InfotapAdminBundle:Department')->findAll();
-        //             foreach ($departments as $department) {
-        //                 $userPreference=new UserPreference();
-        //                 $userPreference->setDept($department);
-        //                 $userPreference->setUser($userEntity);
-        //                 $em->persist($userPreference);
-        //             }
-        //         }
-        //         $em->flush();
-        //         $userObject=new \stdClass;
-        //         $userObject->token=$userEntity->getAccessToken();
-        //         $userObject->name=$userEntity->getName();
-        //         $return['user']= $userObject;
-        //     }else{
-        //          $return['success']=false;
-        //          $return['message']="Invalid OTP.";
-        //     }
-        // }
+        
         $returnResponse=new Response(json_encode($return));
 
         $returnResponse->headers->set('Content-Type', 'application/json');
@@ -268,6 +163,276 @@ class UserController extends FOSRestController
 
         return $returnResponse;
     }
+    public function logoutAction(Request $request)
+    {
+        if($this->get('request')->getMethod()=='OPTIONS'){
+            $returnResponse=new Response(json_encode(array('accept'=>true)));
+            $returnResponse->headers->set('Content-Type', 'application/json');
+            $returnResponse->headers->set('Access-Control-Allow-Origin', '*');
+            $returnResponse->headers->set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+            $returnResponse->headers->set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+            return $returnResponse;
+        }
+        $return=array();
+        $em = $this->getDoctrine()->getManager();
+        $userEntity = $em->getRepository('InfotapAdminBundle:User')->findOneBy(array('accessToken'=>$request->get('token')));
+        if($userEntity){
+            $userEntity->setAccessToken(null);
+            $userEntity->setStatus(0);
+            $em->flush();
+            $return['success']=true;
+            $return['message']="Logged out successfully.";
+        }else{
+            $return['success']=false;
+            $return['message']="Invalid User Account.";
+        }
+        $returnResponse=new Response(json_encode($return));
+        $returnResponse->headers->set('Content-Type', 'application/json');
+        $returnResponse->headers->set('Access-Control-Allow-Origin', '*');
+        $returnResponse->headers->set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+        $returnResponse->headers->set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+
+        return $returnResponse;
+    }
+    // public function apiRegister1Action(Request $request)
+    // {
+    //     $em = $this->getDoctrine()->getManager();
+    //     if($this->get('request')->getMethod()=='OPTIONS'){
+    //         $returnResponse=new Response(json_encode(array('accept'=>true)));
+    //         $returnResponse->headers->set('Content-Type', 'application/json');
+    //         $returnResponse->headers->set('Access-Control-Allow-Origin', '*');
+    //         $returnResponse->headers->set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    //         $returnResponse->headers->set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+    //         return $returnResponse;
+    //     }
+    //     $return=new \stdClass;
+    //     $userEntity=new User();
+    //     $userEntity->setAadharId($request->query->get('uid'));
+    //     $userEntity->setAccessToken($userEntity->getAadharId().'-'.bin2hex(openssl_random_pseudo_bytes(16)));
+    //     $userEntity->setOtpCode(rand(10000,99999));
+    //     $userEntity->setName($request->query->get('name'));
+    //     $userEntity->setEmail($request->query->get('email'));
+    //     $userEntity->setMobile($request->query->get('mobile'));
+    //     $userEntity->setLocation($request->query->get('location'));
+    //     $userEntity->setArea($request->query->get('area'));
+    //     $userEntity->setCity($request->query->get('city'));
+    //     $userEntity->setState($request->query->get('state'));
+    //     $userEntity->setAndroidRegId($request->query->get('androidRegId'));
+    //     $userEntity->setStatus(0);
+    //     if(is_array($request->query->get('gender'))){
+    //         $gender=$request->query->get('gender');
+    //         $userEntity->setGender($gender[1]);
+    //     }
+    //     $day=null;$month=null;$year=null;
+    //     if(is_array($request->query->get('day'))){
+    //         $dayarr=$request->query->get('day');
+    //         $day=($dayarr[1]);
+    //     }
+    //     if(is_array($request->query->get('month'))){
+    //         $montharr=$request->query->get('month');
+    //         $month=($montharr[1]);
+    //     }
+    //     if(is_array($request->query->get('year'))){
+    //         $yeararr=$request->query->get('year');
+    //         $year=($yeararr[1]);
+    //     }
+    //     if($day&&$month&&$year){
+    //         $dob = \DateTime::createFromFormat('d-m-Y',$day.'-'.$month.'-'.$year);
+    //         $userEntity->setDob($dob);
+    //     }
+    //     $existingUserEntity=$em->getRepository('InfotapAdminBundle:User')->findOneBy(array('aadharId'=>$request->query->get('uid')));
+    //     if($existingUserEntity){
+    //         $userEntity=$existingUserEntity;
+    //         $userEntity->setOtpCode(rand(10000,99999));
+    //         $userEntity->setStatus(0);
+    //     }else{
+    //         $em->persist($userEntity);
+    //     }
+
+    //     // $smsData=array();
+    //     // $smsData['to']=$userEntity->getMobile();
+    //     // $smsData['message']='Welcome to InfoTap! Your mobile verification code is '.$userEntity->setOtpCode().';
+    //     // $this->get('infotap.helper.common')->sendSms($smsData);
+
+    //     $em->flush();
+    //     $return->success=true;
+    //     $return->message="OTP is sent to your mobile no."; 
+
+    //     // if($userEntity->getAadharId()&&$userEntity->getName()){
+    //     //         $auth_string ='{"aadhaar-id":"'.$userEntity->getAadharId().'","location":{"type":"pincode","pincode":"560067"},"modality":"demo","certificate-type":"preprod","demographics":{"name":{"matching-strategy":"exact","name-value":"'.$userEntity->getName().'"}';
+    //     //         $auth_string .='}}';
+    //     //         $ch = curl_init('https://ac.khoslalabs.com/hackgate/hackathon/auth/raw');                                                                      
+    //     //         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                                                     
+    //     //         curl_setopt($ch, CURLOPT_POSTFIELDS, $auth_string);                                                                  
+    //     //         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);                                                                      
+    //     //         curl_setopt($ch, CURLOPT_HTTPHEADER, array(                                                                          
+    //     //             'Content-Type: application/json',                                                                                
+    //     //             'Content-Length: ' . strlen($auth_string))                                                                       
+    //     //         );                                                                                                                                                                                                                       
+    //     //         $auth_result = curl_exec($ch);
+    //     //         $auth_resultobj=json_decode($auth_result);
+    //     //         if($auth_resultobj->success){
+    //     //             $data_string ='{"aadhaar-id":"'.$userEntity->getAadharId().'","location":{"type":"pincode","pincode":"123456"},"channel":"SMS"}';
+    //     //             $ch = curl_init('https://ac.khoslalabs.com/hackgate/hackathon/otp');                                                                      
+    //     //             curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                                                     
+    //     //             curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);                                                                  
+    //     //             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);                                                                      
+    //     //             curl_setopt($ch, CURLOPT_HTTPHEADER, array(                                                                          
+    //     //                 'Content-Type: application/json',                                                                                
+    //     //                 'Content-Length: ' . strlen($data_string))                                                                       
+    //     //             );                                                                                                                                                                                                                       
+    //     //             $result = curl_exec($ch);
+    //     //             $resultobj=json_decode($result);
+    //     //             if($resultobj->success){
+    //     //                 $return['success']=true;
+    //     //                 $return['message']="OTP is sent to your mobile registered with your aadhaar no.";
+    //     //             }else{
+    //     //                  $return['success']=false;
+    //     //                  $return['message']="Invalid aadhaar no. or it is not associated with a mobile number for OTP.";
+    //     //             }
+    //     //         }else{
+    //     //             $return['success']=false;
+    //     //             $return['message']="Your name is not matching with Aadhaar ID";
+    //     //         }
+    //     // }else{
+    //     //     $return['success']=false;
+    //     //     $return['message']="Please provide Aadhaar id and Full Name as in Aadhaar Card";
+    //     // }
+
+    //     $returnResponse=new Response(json_encode($return));
+    //     $returnResponse->headers->set('Content-Type', 'application/json');
+    //     $returnResponse->headers->set('Access-Control-Allow-Origin', '*');
+    //     $returnResponse->headers->set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    //     $returnResponse->headers->set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+
+    //     return $returnResponse;
+    // }
+    // public function apiRegister2Action(Request $request)
+    // {
+    //     $em = $this->getDoctrine()->getManager();
+    //     if($this->get('request')->getMethod()=='OPTIONS'){
+    //         $returnResponse=new Response(json_encode(array('accept'=>true)));
+    //         $returnResponse->headers->set('Content-Type', 'application/json');
+    //         $returnResponse->headers->set('Access-Control-Allow-Origin', '*');
+    //         $returnResponse->headers->set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    //         $returnResponse->headers->set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+    //         return $returnResponse;
+    //     }
+    //     $return=new \stdClass;
+    //     $userEntity=new User();
+    //     $userEntity=$em->getRepository('InfotapAdminBundle:User')->findOneBy(array('aadharId'=>$request->query->get('uid')));
+    //     if($request->get('code') && $userEntity){
+    //         if($request->get('code')==$userEntity->getOtpCode()){
+    //             $userEntity->setStatus(1);
+    //             $userEntity->setOtpCode(null);
+    //             $departments = $em->getRepository('InfotapAdminBundle:Department')->findAll();
+    //             foreach ($departments as $department) {
+    //                 $userPreference=new UserPreference();
+    //                 $userPreference->setDept($department);
+    //                 $userPreference->setUser($userEntity);
+    //                 $em->persist($userPreference);
+    //             }
+    //             $userObject=new \stdClass;
+    //             $userObject->token=$userEntity->getAccessToken();
+    //             $userObject->name=$userEntity->getName();
+    //             $return->success=true;
+    //             $return->user= $userObject;
+    //             $return->message="Mobile Verification successful.";
+    //         }else{
+    //             $return->success=false;
+    //             $return->message="Invalid verification code.";
+    //         }
+    //     }else{
+    //         $return->success=false;
+    //         $return->message="Invalid verification code.";
+    //     }
+    //     $em->flush();
+    //     // $userEntity->setAadharId($request->query->get('uid'));
+    //     // $userEntity->setOtpCode($request->query->get('code'));
+    //     // if($userEntity->getAadharId()){
+    //     //     $data_string ='{"aadhaar-id":"'.$userEntity->getAadharId().'","location": {"type": "pincode","pincode": "201304"},"modality": "otp","otp": "'.$userEntity->getOtpCode().'","device-id": "public","certificate-type": "preprod"}';
+    //     //     $ch = curl_init('https://ac.khoslalabs.com/hackgate/hackathon/auth/raw');                                                                      
+    //     //     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");                                                                     
+    //     //     curl_setopt($ch, CURLOPT_POSTFIELDS, $data_string);                                                                  
+    //     //     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);                                                                      
+    //     //     curl_setopt($ch, CURLOPT_HTTPHEADER, array(                                                                          
+    //     //         'Content-Type: application/json',                                                                                
+    //     //         'Content-Length: ' . strlen($data_string))                                                                       
+    //     //     );                                                                                                                                                                                                                       
+    //     //     $result = curl_exec($ch);
+    //     //     $resultobj=json_decode($result);
+    //     //     if($resultobj->success){
+    //     //         $return['success']=true;
+    //     //         $return['message']="Account created successfully.";
+    //     //         $existingUserEntity = $em->getRepository('InfotapAdminBundle:User')->findOneBy(array('aadharId'=>$userEntity->getAadharId()));
+    //     //         if($existingUserEntity){
+    //     //             $userEntity=$existingUserEntity;
+    //     //             $token=$existingUserEntity->getAccessToken();
+    //     //         }else{
+    //     //             $userEntity->setAccessToken($userEntity->getAadharId().'-'.bin2hex(openssl_random_pseudo_bytes(16)));
+    //     //             $token=$userEntity->getAccessToken();
+    //     //         }
+    //     //         $userEntity->setName($request->query->get('name'));
+    //     //         $userEntity->setEmail($request->query->get('email'));
+    //     //         $userEntity->setMobile($request->query->get('mobile'));
+    //     //         $userEntity->setLocation($request->query->get('location'));
+    //     //         $userEntity->setArea($request->query->get('area'));
+    //     //         $userEntity->setCity($request->query->get('city'));
+    //     //         $userEntity->setState($request->query->get('state'));
+    //     //         $userEntity->setAndroidRegId($request->query->get('androidRegId'));
+    //     //         if(is_array($request->query->get('gender'))){
+    //     //             $gender=$request->query->get('gender');
+    //     //             $userEntity->setGender($gender[1]);
+    //     //         }
+    //     //         $day=null;$month=null;$year=null;
+    //     //         if(is_array($request->query->get('day'))){
+    //     //             $dayarr=$request->query->get('day');
+    //     //             $day=($dayarr[1]);
+    //     //         }
+    //     //         if(is_array($request->query->get('month'))){
+    //     //             $montharr=$request->query->get('month');
+    //     //             $month=($montharr[1]);
+    //     //         }
+    //     //         if(is_array($request->query->get('year'))){
+    //     //             $yeararr=$request->query->get('year');
+    //     //             $year=($yeararr[1]);
+    //     //         }
+    //     //         if($day&&$month&&$year){
+    //     //             $dob = \DateTime::createFromFormat('d-m-Y',$day.'-'.$month.'-'.$year);
+    //     //             $userEntity->setDob($dob);
+    //     //         }
+
+    //     //         if(!$existingUserEntity){
+    //     //             $userEntity->setStatus(1);
+    //     //             $em->persist($userEntity);
+    //     //             $em->flush();
+    //     //             $departments = $em->getRepository('InfotapAdminBundle:Department')->findAll();
+    //     //             foreach ($departments as $department) {
+    //     //                 $userPreference=new UserPreference();
+    //     //                 $userPreference->setDept($department);
+    //     //                 $userPreference->setUser($userEntity);
+    //     //                 $em->persist($userPreference);
+    //     //             }
+    //     //         }
+    //     //         $em->flush();
+    //     //         $userObject=new \stdClass;
+    //     //         $userObject->token=$userEntity->getAccessToken();
+    //     //         $userObject->name=$userEntity->getName();
+    //     //         $return['user']= $userObject;
+    //     //     }else{
+    //     //          $return['success']=false;
+    //     //          $return['message']="Invalid OTP.";
+    //     //     }
+    //     // }
+    //     $returnResponse=new Response(json_encode($return));
+
+    //     $returnResponse->headers->set('Content-Type', 'application/json');
+    //     $returnResponse->headers->set('Access-Control-Allow-Origin', '*');
+    //     $returnResponse->headers->set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    //     $returnResponse->headers->set('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+
+    //     return $returnResponse;
+    // }
     /**
      * Creates a new User entity.
      *
