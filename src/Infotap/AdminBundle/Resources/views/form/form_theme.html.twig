@@ -1,0 +1,55 @@
+
+{% block form_errors %}
+    {% spaceless %}
+        {% if errors is defined and errors|length > 0 %}
+            <div class='apply-validation-error'>
+            {% for error in errors %}
+                {{ error.message }}<br>
+            {% endfor %}
+            </div>
+        {% endif %}
+    {% endspaceless %}
+{% endblock form_errors %}
+{% use 'form_div_layout.html.twig' with form_label as base_form_label %}
+{% block form_label %}
+    {{ block('base_form_label') }}
+    {% if required %}
+        <span class="required" title="This field is required">*</span>
+    {% endif %}
+{% endblock %}
+{% block form_row %}
+    <div class="row admin-form-row">
+        <div class='col-md-3'>
+            {{ form_label(form) }}
+        </div>
+        <div class='col-md-9'>
+            {{ form_widget(form) }}
+            <div>{{ form_errors(form) }}</div>
+        </div>
+    </div>
+{% endblock form_row %}
+{% block captcha_widget %}
+{% spaceless %}
+    <br/><img src="{{ captcha_code }}" title="captcha" width="{{ captcha_width }}" height="{{ captcha_height }}" style='margin-bottom:5px;' />
+    <br/>{{ form_widget(form, {attr: {placeholder: 'Type the above characters',class: 'form-control'}}) }}
+{% endspaceless %}
+{% endblock %}
+{#% block submit_widget %}
+    <div class='form-submit-wrap'>
+    {{ form_label(form) }}
+    {{ form_errors(form) }}
+    {{ form_widget(form) }}
+    </div>
+{% endblock %}
+
+{% block submit_errors %}
+    {% spaceless %}
+        {% if errors is defined and errors|length > 0 %}
+            <div class='apply-validation-error'>
+            {% for error in errors %}
+                {{ error.message }}<br>
+            {% endfor %}
+            </div>
+        {% endif %}
+    {% endspaceless %}
+{% endblock %#}

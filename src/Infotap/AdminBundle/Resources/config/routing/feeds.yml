@@ -1,0 +1,31 @@
+feeds:
+    path:     /
+    defaults: { _controller: "InfotapAdminBundle:Feeds:index" }
+
+feeds_show:
+    path:     /{id}/show
+    defaults: { _controller: "InfotapAdminBundle:Feeds:show" }
+    methods:  GET
+
+feeds_new:
+    path:     /new
+    defaults: { _controller: "InfotapAdminBundle:Feeds:new" }
+
+feeds_create:
+    path:     /create
+    defaults: { _controller: "InfotapAdminBundle:Feeds:create" }
+    methods:  POST
+
+feeds_edit:
+    path:     /{id}/edit
+    defaults: { _controller: "InfotapAdminBundle:Feeds:edit" }
+
+feeds_update:
+    path:     /{id}/update
+    defaults: { _controller: "InfotapAdminBundle:Feeds:update" }
+    methods:  [POST, PUT]
+
+feeds_delete:
+    path:     /{id}/delete
+    defaults: { _controller: "InfotapAdminBundle:Feeds:delete" }
+    methods:  [POST, DELETE]

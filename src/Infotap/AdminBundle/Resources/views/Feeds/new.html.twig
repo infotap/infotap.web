@@ -1,0 +1,113 @@
+{% extends '::layout/admin_base.html.twig' %}
+{% form_theme form 'InfotapAdminBundle:form:form_theme.html.twig' %}
+{% block content -%}
+    <h4>Post New Message</h4><hr/>
+
+    {{ form_start(form, {attr: {novalidate: 'novalidate'}}) }}
+    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+    <div class="panel panel-default no-border-radius">
+    <div class="panel-heading new-job-post-panel-head" role="tab" id="headingOne" data-toggle="collapse" data-parent="#accordion" href="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+      <h4 class="panel-title">
+        <i class="fa fa-user"></i>  User Details
+      </h4>
+    </div>
+    <div id="nocollapseOne" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+      <div class="panel-body">
+        <div class='row'>
+            <div class='col-md-8 col-md-offset-2'>
+                {{ form_row(form.aadharId) }}
+                {{ form_row(form.location) }}
+                {#{ form_row(form.pincode) }#}
+                {{ form_row(form.gender) }}
+                <div class="row admin-form-row">
+                    <div class='col-md-3'>
+                        <label>Age Range</label>
+                    </div>
+                    <div class='col-md-9'>
+                        {{ form_widget(form.ageFrom) }} 
+                        <span id='infotap_adminbundle_feeds_to'>to</span>
+                        {{ form_widget(form.ageTo) }}
+                    </div>
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+    </div>
+    <div class="panel panel-default no-border-radius">
+        <div class="panel-heading new-job-post-panel-head" role="tab" id="headingTwo" data-toggle="collapse" data-parent="#accordion" href="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+          <h4 class="panel-title">
+            <i class="fa fa-volume-up"></i> Message Details
+          </h4>
+        </div>
+        <div id="nocollapseTwo" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingThree">
+            <div class="panel-body">
+                <div class='row'>
+                    <div class='col-md-8 col-md-offset-2'>
+                        {{ form_row(form.title) }}
+                        {{ form_row(form.message) }}
+                        {{ form_row(form.dept) }}
+                        {#{ form_row(form.file) }#}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>    
+    <div class='row'>
+    <div class='col-md-12'>
+        <div class='align-center'>
+        {{ form_row(form.submit) }}
+        </div><br><br>
+    </div>
+    </div>
+    {{ form_end(form) }}
+{% endblock %}
+{% block javascripts %}{{ parent() }}
+<script src="http://maps.googleapis.com/maps/api/js?sensor=false&amp;libraries=places"></script>
+    <script src="{{ asset('lib/jquery.geocomplete/jquery.geocomplete.min.js') }}"></script>
+    <script type="text/javascript">
+    $("#infotap_adminbundle_feeds_location").geocomplete({
+        
+    }).bind("geocode:result", function(event, result){
+        var sublocality="";
+        var locality="";
+        var administrative_area_level_1="";
+        var country="";
+        $(result.address_components).each(function( index, element ) {
+            if (element.types[0]=="sublocality_level_1"){sublocality=element.long_name;}
+            else if (element.types[0]=="locality"){locality=element.long_name;}
+            else if (element.types[0]=="administrative_area_level_1"){administrative_area_level_1=element.long_name;}
+            else if (element.types[0]=="country"){country=element.long_name;}
+        });
+        $('#infotap_adminbundle_feeds_area').val(sublocality);
+        $('#infotap_adminbundle_feeds_city').val(locality);
+        $('#infotap_adminbundle_feeds_state').val(administrative_area_level_1);
+        $('#infotap_adminbundle_feeds_latitude').val(result.geometry.location.lat());
+        $('#infotap_adminbundle_feeds_longitude').val(result.geometry.location.lng());
+        codeLatLng();
+    });
+	var geocoder;
+    $(document).ready(function(){
+        geocoder = new google.maps.Geocoder();
+    });
+    function codeLatLng() {
+      var lat = document.getElementById('infotap_adminbundle_feeds_latitude').value;
+      var lng = document.getElementById('infotap_adminbundle_feeds_longitude').value;
+      var latlng = new google.maps.LatLng(lat, lng);
+      geocoder.geocode({'latLng': latlng}, processRevGeocode);
+    }
+    function processRevGeocode(results, status) {
+        if (status == google.maps.GeocoderStatus.OK) {
+           displayPostcode(results[0].address_components);
+        }
+    }
+    function displayPostcode(address) {
+      for (p = address.length-1; p >= 0; p--) {
+        if (address[p].types.indexOf("postal_code") != -1) {
+           document.getElementById('infotap_adminbundle_feeds_pincode').value= address[p].long_name;
+        }
+      }
+    }
+</script>
+{% endblock %}

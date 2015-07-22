@@ -1,0 +1,3 @@
+infotap_admin:
+    resource: "@InfotapAdminBundle/Resources/config/routing.yml"
+    prefix:   /

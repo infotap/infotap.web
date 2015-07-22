@@ -1,0 +1,44 @@
+{% extends '::layout/admin_base.html.twig' %}
+
+{% block content -%}
+    <h1>User list</h1>
+
+    <table class="records_list table-bordered table-condensed table-striped">
+        <thead>
+            <tr>
+            
+                <th>Aadharid</th>
+                <th>Name</th>
+                <th>Gender</th>
+                <th>Dob</th>
+                <th>Age</th>
+                <th>Email</th>
+                <th>Mobile</th>
+                <th>Address</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for entity in entities %}
+            <tr> 
+                <td>{{ entity.aadharId }}</td>
+                <td>{{ entity.name }}</td>
+                <td>{{ entity.gender }}</td>
+                <td>{% if entity.dob %}{{ entity.dob|date('Y-m-d H:i:s') }}{% endif %}</td>
+                <td>{{ entity.age }}</td>
+                <td>{{ entity.email }}</td>
+                <td>{{ entity.mobile }}</td>
+                <td>{{ entity.area }},<br /> {{ entity.city }},<br /> {{ entity.state }},<br /> PIN: {{ entity.pincode }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+        <ul>
+        <li>
+            <a href="{{ path('user_new') }}">
+                Create a new entry
+            </a>
+        </li>
+    </ul>
+    {% endblock %}

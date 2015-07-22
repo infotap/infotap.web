@@ -1,0 +1,30 @@
+userpreference:
+    path:     /
+    defaults: { _controller: "InfotapAdminBundle:UserPreference:index" }
+
+userpreference_show:
+    path:     /{id}/show
+    defaults: { _controller: "InfotapAdminBundle:UserPreference:show" }
+
+userpreference_new:
+    path:     /new
+    defaults: { _controller: "InfotapAdminBundle:UserPreference:new" }
+
+userpreference_create:
+    path:     /create
+    defaults: { _controller: "InfotapAdminBundle:UserPreference:create" }
+    methods:  POST
+
+userpreference_edit:
+    path:     /{id}/edit
+    defaults: { _controller: "InfotapAdminBundle:UserPreference:edit" }
+
+userpreference_update:
+    path:     /{id}/update
+    defaults: { _controller: "InfotapAdminBundle:UserPreference:update" }
+    methods:  [POST, PUT]
+
+userpreference_delete:
+    path:     /{id}/delete
+    defaults: { _controller: "InfotapAdminBundle:UserPreference:delete" }
+    methods:  [POST, DELETE]

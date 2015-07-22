@@ -1,0 +1,80 @@
+{% extends '::layout/admin_base.html.twig' %}
+
+{% block content -%}
+    <h1>Feeds</h1>
+
+    <table class="record_properties">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ entity.id }}</td>
+            </tr>
+            <tr>
+                <th>Title</th>
+                <td>{{ entity.title }}</td>
+            </tr>
+            <tr>
+                <th>Message</th>
+                <td>{{ entity.message }}</td>
+            </tr>
+            <tr>
+                <th>Aadharid</th>
+                <td>{{ entity.aadharId }}</td>
+            </tr>
+            <tr>
+                <th>Gender</th>
+                <td>{{ entity.gender }}</td>
+            </tr>
+            <tr>
+                <th>Agefrom</th>
+                <td>{{ entity.ageFrom }}</td>
+            </tr>
+            <tr>
+                <th>Ageto</th>
+                <td>{{ entity.ageTo }}</td>
+            </tr>
+            <tr>
+                <th>Location</th>
+                <td>{{ entity.location }}</td>
+            </tr>
+            <tr>
+                <th>Area</th>
+                <td>{{ entity.area }}</td>
+            </tr>
+            <tr>
+                <th>City</th>
+                <td>{{ entity.city }}</td>
+            </tr>
+            <tr>
+                <th>State</th>
+                <td>{{ entity.state }}</td>
+            </tr>
+            <tr>
+                <th>Pincode</th>
+                <td>{{ entity.pincode }}</td>
+            </tr>
+            <tr>
+                <th>Latitude</th>
+                <td>{{ entity.latitude }}</td>
+            </tr>
+            <tr>
+                <th>Longitude</th>
+                <td>{{ entity.longitude }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+        <ul class="record_actions">
+    <li>
+        <a href="{{ path('feeds') }}">
+            Back to the list
+        </a>
+    </li>
+    <li>
+        <a href="{{ path('feeds_edit', { 'id': entity.id }) }}">
+            Edit
+        </a>
+    </li>
+    <li>{{ form(delete_form) }}</li>
+</ul>
+{% endblock %}

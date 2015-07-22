@@ -1,0 +1,107 @@
+Infotap\AdminBundle\Entity\Feeds:
+    type: entity
+    table: feeds
+    indexes:
+        department_idfk_2:
+            columns:
+                - dept_id
+    id:
+        id:
+            type: integer
+            nullable: false
+            unsigned: false
+            comment: ''
+            id: true
+            generator:
+                strategy: IDENTITY
+    fields:
+        title:
+            type: string
+            nullable: false
+            length: 100
+            fixed: false
+            comment: ''
+        message:
+            type: text
+            nullable: false
+            length: null
+            fixed: false
+            comment: ''
+        aadharId:
+            type: integer
+            nullable: true
+            unsigned: false
+            comment: ''
+            column: aadhar_id
+        gender:
+            type: boolean
+            nullable: true
+            comment: ''
+        ageFrom:
+            type: integer
+            nullable: true
+            comment: ''
+            column: age_from
+        ageTo:
+            type: integer
+            nullable: true
+            comment: ''
+            column: age_to
+        location:
+            type: string
+            nullable: true
+            length: 500
+            fixed: false
+            comment: ''
+        area:
+            type: string
+            nullable: true
+            length: 100
+            fixed: false
+            comment: ''
+        city:
+            type: string
+            nullable: true
+            length: 100
+            fixed: false
+            comment: ''
+        state:
+            type: string
+            nullable: true
+            length: 100
+            fixed: false
+            comment: ''
+        pincode:
+            type: integer
+            nullable: true
+            unsigned: false
+            comment: ''
+        latitude:
+            type: string
+            nullable: true
+            length: 20
+            fixed: false
+            comment: ''
+        longitude:
+            type: string
+            nullable: true
+            length: 20
+            fixed: false
+            comment: ''
+        creationTime:
+            type: datetime
+            nullable: false
+            comment: ''
+            default: CURRENT_TIMESTAMP
+            column: creation_time
+    manyToOne:
+        dept:
+            targetEntity: Department
+            cascade: {  }
+            mappedBy: null
+            inversedBy: null
+            joinColumns:
+                dept_id:
+                    referencedColumnName: id
+            orphanRemoval: false
+    lifecycleCallbacks: {  }

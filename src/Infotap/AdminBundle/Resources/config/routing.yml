@@ -1,0 +1,47 @@
+infotap_admin_userpreference:
+    resource: "@InfotapAdminBundle/Resources/config/routing/userpreference.yml"
+    prefix:   /userpreference
+
+infotap_admin_user:
+    resource: "@InfotapAdminBundle/Resources/config/routing/user.yml"
+    prefix:   /user
+
+infotap_admin_feeds:
+    resource: "@InfotapAdminBundle/Resources/config/routing/feeds.yml"
+    prefix:   /feeds
+
+infotap_admin_department:
+    resource: "@InfotapAdminBundle/Resources/config/routing/department.yml"
+    prefix:   /department
+
+infotap_admin_homepage:
+    path:     /hello/{name}
+    defaults: { _controller: InfotapAdminBundle:Default:index }
+
+api_feeds:
+    path:     /api/feeds
+    defaults: { _controller: "InfotapAdminBundle:Feeds:apiFeeds" }
+
+api_feed_get:
+    path:     /api/feed/{id}
+    defaults: { _controller: "InfotapAdminBundle:Feeds:apiFeedGet" }
+
+api_departments:
+    path:     /api/departments
+    defaults: { _controller: "InfotapAdminBundle:Department:apiDepartments" }
+
+api_preferences:
+    path:     /api/preferences
+    defaults: { _controller: "InfotapAdminBundle:UserPreference:apiPreferences" }
+
+
+
+api_register1:
+    path:     /api/register1
+    defaults: { _controller: "InfotapAdminBundle:User:apiRegister1", _format: ~ }
+    methods: ['GET','POST','PUT','OPTIONS']
+
+api_register2:
+    path:     /api/register2
+    defaults: { _controller: "InfotapAdminBundle:User:apiRegister2", _format: ~ }
+    methods: ['GET','POST','PUT','OPTIONS']

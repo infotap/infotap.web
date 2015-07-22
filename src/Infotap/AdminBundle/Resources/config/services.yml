@@ -1,0 +1,4 @@
+services:
+#    infotap_admin.example:
+#        class: Infotap\AdminBundle\Example
+#        arguments: [@service_id, "plain_value", %parameter%]

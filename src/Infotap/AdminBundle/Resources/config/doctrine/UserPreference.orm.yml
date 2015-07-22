@@ -1,0 +1,39 @@
+Infotap\AdminBundle\Entity\UserPreference:
+    type: entity
+    table: user_preference
+    indexes:
+        user_idfk_1:
+            columns:
+                - user_id
+        department_idfk_1:
+            columns:
+                - dept_id
+    id:
+        id:
+            type: integer
+            nullable: false
+            unsigned: false
+            comment: ''
+            id: true
+            generator:
+                strategy: IDENTITY
+    manyToOne:
+        dept:
+            targetEntity: Department
+            cascade: {  }
+            mappedBy: null
+            inversedBy: null
+            joinColumns:
+                dept_id:
+                    referencedColumnName: id
+            orphanRemoval: false
+        user:
+            targetEntity: User
+            cascade: {  }
+            mappedBy: null
+            inversedBy: null
+            joinColumns:
+                user_id:
+                    referencedColumnName: id
+            orphanRemoval: false
+    lifecycleCallbacks: {  }

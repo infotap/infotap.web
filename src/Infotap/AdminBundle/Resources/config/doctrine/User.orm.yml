@@ -1,0 +1,122 @@
+Infotap\AdminBundle\Entity\User:
+    type: entity
+    table: user
+    id:
+        id:
+            type: integer
+            nullable: false
+            unsigned: false
+            comment: ''
+            id: true
+            generator:
+                strategy: IDENTITY
+    fields:
+        aadharId:
+            type: integer
+            nullable: false
+            unsigned: false
+            comment: ''
+            column: aadhar_id
+        name:
+            type: string
+            nullable: false
+            length: 100
+            fixed: false
+            comment: ''
+        accessToken:
+            type: string
+            nullable: false
+            length: 256
+            fixed: false
+            comment: ''
+            column: access_token
+        gender:
+            type: boolean
+            nullable: true
+            comment: ''
+        creationTime:
+            type: datetime
+            nullable: false
+            comment: ''
+            default: CURRENT_TIMESTAMP
+            column: creation_time
+        dob:
+            type: date
+            nullable: true
+            comment: ''
+        age:
+            type: boolean
+            nullable: false
+            comment: ''
+        email:
+            type: string
+            nullable: false
+            length: 100
+            fixed: false
+            comment: ''
+        mobile:
+            type: string
+            nullable: false
+            length: 15
+            fixed: false
+            comment: ''
+        status:
+            type: boolean
+            nullable: false
+            comment: ''
+        otpCode:
+            type: string
+            nullable: true
+            length: 6
+            fixed: false
+            comment: ''
+            column: otp_code
+        location:
+            type: string
+            nullable: true
+            length: 500
+            fixed: false
+            comment: ''
+        area:
+            type: string
+            nullable: true
+            length: 100
+            fixed: false
+            comment: ''
+        city:
+            type: string
+            nullable: true
+            length: 100
+            fixed: false
+            comment: ''
+        state:
+            type: string
+            nullable: true
+            length: 100
+            fixed: false
+            comment: ''
+        pincode:
+            type: integer
+            nullable: true
+            unsigned: false
+            comment: ''
+        latitude:
+            type: string
+            nullable: true
+            length: 20
+            fixed: false
+            comment: ''
+        longitude:
+            type: string
+            nullable: true
+            length: 20
+            fixed: false
+            comment: ''
+        androidRegId:
+            type: string
+            nullable: true
+            length: 255
+            fixed: false
+            comment: ''
+            column: android_reg_id
+    lifecycleCallbacks: {  }
