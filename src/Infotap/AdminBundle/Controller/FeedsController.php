@@ -77,8 +77,8 @@ class FeedsController extends Controller
             //$qb->andWhere("(f.ageFrom is null) or (f.ageFrom is not null and f.ageFrom='".$userEntity->getAadharId()."')");
             //$qb->andWhere("(f.ageTo is null) or (f.ageTo is not null and f.ageTo='".$userEntity->getAadharId()."')");
             $qbQuery=$qb->getQuery();
-            $paginationPage=$this->get('request')->query->get('page', 1);$paginationPage=$paginationPage?$paginationPage:1;
-            $paginationCount=$this->get('request')->query->get('count', 2);$paginationCount=$paginationCount?$paginationCount:10;
+            $paginationPage=$this->get('request')->query->get('page', 1);//$paginationPage=$paginationPage?$paginationPage:1;
+            $paginationCount=$this->get('request')->query->get('count', 10);//$paginationCount=$paginationCount?$paginationCount:10;
             $entities = $this->getPaginationByQuery($qbQuery,$paginationPage,$paginationCount);
         }
         $feeds=array();
@@ -176,10 +176,13 @@ class FeedsController extends Controller
             //$query_str.=" LEFT JOIN u.dept d";
             $query_str.=" where u.androidRegId is not null";
 
-            if($entity->getAadharId()){
+            /*if($entity->getAadharId()){
                 $query_str.=" and  (( u.aadharId = '".$entity->getAadharId().") or ( 1=2 '";
             }else {
-                $query_str.=" (( 1=1 ";
+                $query_str.=" and (( 1=1 ";
+            }*/
+            if($entity->getAadharId()){
+                $query_str.=" and  u.aadharId = '".$entity->getAadharId()."'";
             }
             /*if($entity->getLocation()){
                 $query_str.=" and  u.location = '".$entity->getLocation()."'";
@@ -205,7 +208,14 @@ class FeedsController extends Controller
             if($entity->getAgeTo()){
                 $query_str.=" and u.dob is not null and (DATE_DIFF(CURRENT_DATE(),u.dob) / 365.25) <".($entity->getAgeTo());
             }
-            $query_str.=" )) ";
+            /*$UserPreferences = $em->getRepository('InfotapAdminBundle:UserPreference')->findBy(array('user'=>$userEntity));
+            $deptIds=array();
+            foreach ($UserPreferences as $UserPreference) {
+                $deptIds[]=$UserPreference->getDept()->getId();
+            }
+            $deptidsstr=implode(",",$deptIds);
+            $query_str.="d.id in (".($deptidsstr?$deptidsstr:'0').")";*/
+            //$query_str.=" )) ";
             //print_r($query_str);
             $query = $em->createQuery($query_str);
 
