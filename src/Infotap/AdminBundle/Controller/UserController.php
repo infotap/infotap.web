@@ -129,11 +129,9 @@ class UserController extends FOSRestController
                     $dob = \DateTime::createFromFormat('d-m-Y',$day.'-'.$month.'-'.$year);
                     $userEntity->setDob($dob);
                 }
-                $userEntity->setAccessToken($userEntity->getAadharId().'-'.bin2hex(openssl_random_pseudo_bytes(16)));
                 $userEntity->setStatus(1);
                 $userEntity->setOtpCode(null);
                 $em->persist($userEntity);
-                $em->flush();
                 $departments = $em->getRepository('InfotapAdminBundle:Department')->findAll();
                 foreach ($departments as $department) {
                     $userPreference=new UserPreference();
@@ -141,6 +139,8 @@ class UserController extends FOSRestController
                     $userPreference->setUser($userEntity);
                     $em->persist($userPreference);
                 }
+                $userEntity->setAccessToken($userEntity->getId().'-'.bin2hex(openssl_random_pseudo_bytes(16)));
+                $em->flush();
                 $userObject=new \stdClass;
                 $userObject->token=$userEntity->getAccessToken();
                 $userObject->name=$userEntity->getName();

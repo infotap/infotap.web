@@ -53,13 +53,15 @@ class UserPreferenceController extends Controller
             }
             $em->flush();
             $userPreferencesStr=$request->query->get('departments');
-            $userPreferences=explode(",",$userPreferencesStr);
-            foreach ($userPreferences as $userPreferenceId) {
-                $userDept=$em->getRepository('InfotapAdminBundle:Department')->find($userPreferenceId);
-                $userPreference=new UserPreference();
-                $userPreference->setDept($userDept);
-                $userPreference->setUser($userEntity);
-                $em->persist($userPreference);
+            if($userPreferencesStr){
+                $userPreferences=explode(",",$userPreferencesStr);
+                foreach ($userPreferences as $userPreferenceId) {
+                    $userDept=$em->getRepository('InfotapAdminBundle:Department')->find($userPreferenceId);
+                    $userPreference=new UserPreference();
+                    $userPreference->setDept($userDept);
+                    $userPreference->setUser($userEntity);
+                    $em->persist($userPreference);
+                }
             }
             $em->flush();
             $return['success']=true;
