@@ -45,19 +45,21 @@ class UserController extends FOSRestController
         $userEntity=new User();
         $userEntity->setMobile($request->query->get('mobile'));
         $existingEntity = $em->getRepository('InfotapAdminBundle:User')->findOneBy(array('mobile'=>$userEntity->getMobile()));
+        $otpCode=rand(10000,99999);
         if(!$existingEntity){
-            $userEntity->setOtpCode(rand(10000,99999));
+            $userEntity->setOtpCode($otpCode);
             $userEntity->setStatus(0);
             $em->persist($userEntity);
         }else{
-            $existingEntity->setOtpCode(rand(10000,99999));
+            $existingEntity->setOtpCode($otpCode);
             $existingEntity->setStatus(0);
         }
 
         if($this->container->getParameter('sms_flag')){
+            $buzz = $this->container->get('buzz');
             $smsData=array();
             $smsData['to']=$userEntity->getMobile();
-            $smsData['message']='Welcome to InfoTap! Your mobile verification code is '.$userEntity->setOtpCode();
+            $smsData['message']='Welcome to InfoTap! Your mobile verification code is '.$otpCode;
             $buzz = $this->container->get('buzz');
             $smsCallUrl='http://api.mvaayoo.com/mvaayooapi/MessageCompose?user='.$this->container->getParameter('sms_username').':'.$this->container->getParameter('sms_password').'&senderID=DOPART&receipientno='.$smsData['to'].'&msgtxt='.urlencode($smsData['message']).'&state=4';
             $response =null;
